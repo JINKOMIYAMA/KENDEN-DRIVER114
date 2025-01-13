@@ -13,6 +13,15 @@ export default async function handler(
   try {
     const { customerName, customerEmail, items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
+    // APIキーの最初の10文字をログ出力（セキュリティのため）
+    console.log('RESEND_API_KEY prefix:', process.env.RESEND_API_KEY?.substring(0, 10));
+    
+    // メールアドレスの検証
+    console.log('Recipient emails:', {
+      customer: customerEmail,
+      admin: process.env.ADMIN_EMAIL
+    });
+
     // 必須フィールドの検証
     if (!customerName || !customerEmail || !items || !totalAmount || !shippingAddress || !paymentMethod) {
       console.error('Missing required fields:', { customerName, customerEmail, items, totalAmount, shippingAddress, paymentMethod });
@@ -59,7 +68,11 @@ export default async function handler(
       `
     };
 
-    console.log('Sending email to Resend API');
+    console.log('Preparing email data:', {
+      from: emailData.from,
+      to: emailData.to,
+      subject: emailData.subject
+    });
 
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -71,9 +84,10 @@ export default async function handler(
     });
 
     const responseText = await response.text();
-    console.log('Resend API response:', {
+    console.log('Resend API complete response:', {
       status: response.status,
       statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
       body: responseText
     });
 
@@ -85,7 +99,7 @@ export default async function handler(
     return res.status(200).json({ success: true });
 
   } catch (error) {
-    console.error('Error details:', error);
+    console.error('Full error details:', error);
     return res.status(500).json({ 
       error: 'Failed to send email',
       details: error instanceof Error ? error.message : 'Unknown error'
