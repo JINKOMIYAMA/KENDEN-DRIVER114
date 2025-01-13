@@ -4,6 +4,8 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  console.log('API handler started');
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -12,18 +14,19 @@ export default async function handler(
     const { customerName, customerEmail, items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
     // リクエストデータのログ
-    console.log('Request data:', {
+    console.log('Request data:', JSON.stringify({
       customerName,
       customerEmail,
       totalAmount,
       shippingAddress,
       paymentMethod
-    });
+    }, null, 2));
 
     // 環境変数の確認
     console.log('Environment variables:', {
       RESEND_API_KEY: process.env.RESEND_API_KEY ? 'Set' : 'Not set',
-      ADMIN_EMAIL: process.env.ADMIN_EMAIL
+      ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+      NODE_ENV: process.env.NODE_ENV
     });
 
     const emailData = {
@@ -55,30 +58,36 @@ export default async function handler(
       `
     };
 
-    console.log('Sending email with data:', emailData);
+    console.log('Preparing to send email');
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(emailData)
-    });
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+      });
 
-    const responseData = await response.text();
-    console.log('Resend API response:', {
-      status: response.status,
-      data: responseData
-    });
+      const responseData = await response.text();
+      console.log('Resend API response:', {
+        status: response.status,
+        data: responseData
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to send email: ${responseData}`);
+      if (!response.ok) {
+        throw new Error(`Resend API error: ${responseData}`);
+      }
+
+      console.log('Email sent successfully');
+      return res.status(200).json({ success: true });
+    } catch (fetchError) {
+      console.error('Fetch error:', fetchError);
+      throw fetchError;
     }
-
-    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error('Handler error:', error);
     return res.status(500).json({ 
       error: 'Failed to send email',
       details: error instanceof Error ? error.message : 'Unknown error'
