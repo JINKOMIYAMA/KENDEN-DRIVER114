@@ -4,8 +4,16 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "RESEND_API_KEY": "re_a89Vp1Cg_5S5hs9T5bhWKG6dN6Us9sEUb",
+    "ADMIN_EMAIL": "comimasa@icloud.com"
+  }
 }

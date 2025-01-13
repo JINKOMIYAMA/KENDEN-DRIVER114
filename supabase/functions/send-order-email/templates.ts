@@ -13,33 +13,28 @@ interface Order {
   shipping_address: string;
   payment_method: string;
   total_amount: number;
-  created_at: string;
   order_items: OrderItem[];
 }
 
 export const createCustomerEmail = (order: Order) => {
-  const items = order.order_items.map(item => `
-    <tr>
+  const items = order.order_items.map(item => 
+    `<tr>
       <td>${item.product_name}</td>
       <td>${item.quantity}個</td>
       <td>¥${item.price.toLocaleString()}</td>
-      <td>¥${(item.price * item.quantity).toLocaleString()}</td>
-    </tr>
-  `).join('');
+    </tr>`
+  ).join('');
 
   return `
-    <h2>ご注文ありがとうございます</h2>
-    <p>${order.customer_name} 様</p>
-    <p>ご注文を受け付けました。</p>
+    <h2>${order.customer_name}様</h2>
+    <p>ご注文ありがとうございます。</p>
     
     <h3>ご注文内容</h3>
-    <p>注文番号: ${order.id}</p>
     <table>
       <tr>
         <th>商品名</th>
         <th>数量</th>
-        <th>単価</th>
-        <th>小計</th>
+        <th>価格</th>
       </tr>
       ${items}
     </table>
@@ -55,23 +50,18 @@ export const createCustomerEmail = (order: Order) => {
 };
 
 export const createAdminEmail = (order: Order) => {
-  const items = order.order_items.map(item => `
-    <tr>
+  const items = order.order_items.map(item => 
+    `<tr>
       <td>${item.product_name}</td>
       <td>${item.quantity}個</td>
       <td>¥${item.price.toLocaleString()}</td>
-      <td>¥${(item.price * item.quantity).toLocaleString()}</td>
-    </tr>
-  `).join('');
+    </tr>`
+  ).join('');
 
   return `
     <h2>新規注文がありました</h2>
     
-    <h3>注文情報</h3>
-    <p>注文番号: ${order.id}</p>
-    <p>注文日時: ${new Date(order.created_at).toLocaleString('ja-JP')}</p>
-    
-    <h3>お客様情報</h3>
+    <h3>注文者情報</h3>
     <p>お名前: ${order.customer_name}</p>
     <p>メール: ${order.customer_email}</p>
     
@@ -80,8 +70,7 @@ export const createAdminEmail = (order: Order) => {
       <tr>
         <th>商品名</th>
         <th>数量</th>
-        <th>単価</th>
-        <th>小計</th>
+        <th>価格</th>
       </tr>
       ${items}
     </table>

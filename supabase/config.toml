@@ -1,3 +1,23 @@
-project_id = "hictgxjavizoycelkzmy"
+project_id = "yojcnidkbdudohdaecdh"
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+[db]
+port = 54322
+shadow_port = 54320
+[studio]
+enabled = true
+port = 54323
+[inbucket]
+enabled = true
+port = 54324
+[storage]
+enabled = true
+[auth]
+enabled = true
+[realtime]
+enabled = true
 [functions.send-order-email]
 verify_jwt = false

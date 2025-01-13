@@ -127,27 +127,37 @@ const Payment = () => {
 
   const handlePayment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formElement = e.currentTarget;
+    
+    try {
+      const orderData = {
+        customerName: customerInfo.name,
+        customerEmail: customerInfo.email,
+        shippingAddress: `〒${address.postalCode} ${address.prefecture}${address.city}${address.street}`,
+        paymentMethod,
+        paymentDetails: paymentDetails,
+        totalAmount: total,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        }))
+      };
 
-    if (!validateForm(formElement)) {
-      return;
-    }
+      console.log('Submitting order:', orderData);
 
-    const orderData = {
-      customerName: customerInfo.name,
-      customerEmail: customerInfo.email,
-      shippingAddress: `〒${address.postalCode} ${address.prefecture}${address.city}${address.street}`,
-      paymentMethod,
-      paymentDetails: paymentDetails,
-      totalAmount: total,
-      items: items
-    };
-
-    const success = await createOrder(orderData);
-    if (success) {
-      toast.success('ご注文ありがとうございます！');
-      clearCart();
-      navigate('/');
+      const success = await createOrder(orderData);
+      
+      if (success) {
+        toast.success('ご注文ありがとうございます！');
+        clearCart();
+        navigate('/');
+      } else {
+        toast.error('注文処理に失敗しました。');
+      }
+    } catch (error) {
+      console.error('Order submission failed:', error);
+      toast.error('注文処理に失敗しました。');
     }
   };
 
