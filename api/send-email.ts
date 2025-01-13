@@ -26,47 +26,54 @@ export default async function handler(
       ADMIN_EMAIL: process.env.ADMIN_EMAIL
     });
 
+    const emailData = {
+      from: 'KENDEN DRIVER <onboarding@resend.dev>',
+      to: [customerEmail, process.env.ADMIN_EMAIL],
+      subject: 'ご注文ありがとうございます',
+      html: `
+        <h2>${customerName}様</h2>
+        <p>ご注文ありがとうございます。</p>
+        
+        <h3>ご注文内容</h3>
+        <table>
+          ${items.map((item: any) => `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.quantity}個</td>
+              <td>¥${item.price.toLocaleString()}</td>
+            </tr>
+          `).join('')}
+        </table>
+        
+        <p>合計金額: ¥${totalAmount.toLocaleString()}</p>
+        
+        <h3>お届け先情報</h3>
+        <p>${shippingAddress}</p>
+        
+        <h3>お支払い方法</h3>
+        <p>${paymentMethod}</p>
+      `
+    };
+
+    console.log('Sending email with data:', emailData);
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        from: 'KENDEN DRIVER <onboarding@resend.dev>',
-        to: [customerEmail, process.env.ADMIN_EMAIL],
-        subject: 'ご注文ありがとうございます',
-        html: `
-          <h2>${customerName}様</h2>
-          <p>ご注文ありがとうございます。</p>
-          
-          <h3>ご注文内容</h3>
-          <table>
-            ${items.map((item: any) => `
-              <tr>
-                <td>${item.name}</td>
-                <td>${item.quantity}個</td>
-                <td>¥${item.price.toLocaleString()}</td>
-              </tr>
-            `).join('')}
-          </table>
-          
-          <p>合計金額: ¥${totalAmount.toLocaleString()}</p>
-          
-          <h3>お届け先情報</h3>
-          <p>${shippingAddress}</p>
-          
-          <h3>お支払い方法</h3>
-          <p>${paymentMethod}</p>
-        `
-      })
+      body: JSON.stringify(emailData)
     });
 
-    // レスポンスの詳細をログ
+    const responseData = await response.text();
+    console.log('Resend API response:', {
+      status: response.status,
+      data: responseData
+    });
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Resend API error:', errorText);
-      throw new Error(`Failed to send email: ${errorText}`);
+      throw new Error(`Failed to send email: ${responseData}`);
     }
 
     return res.status(200).json({ success: true });
