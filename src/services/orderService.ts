@@ -20,7 +20,10 @@ interface OrderData {
 export const createOrder = async (orderData: OrderData) => {
   try {
     // 1. ordersテーブルに注文を保存
-    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+    const supabase = createClient(
+      import.meta.env.VITE_SUPABASE_URL!,
+      import.meta.env.VITE_SUPABASE_ANON_KEY!
+    );
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert([{

@@ -37,7 +37,7 @@ serve(async (req) => {
 
     // 顧客へのメール送信
     await resend.emails.send({
-      from: 'Shop <noreply@yourdomain.com>',
+      from: 'Shop <comimasa@icloud.com>',
       to: order.customer_email,
       subject: 'ご注文ありがとうございます',
       html: createCustomerEmail(order)
@@ -45,7 +45,7 @@ serve(async (req) => {
 
     // 管理者へのメール送信
     await resend.emails.send({
-      from: 'Shop <noreply@yourdomain.com>',
+      from: 'Shop <comimasa@icloud.com>',
       to: Deno.env.get('ADMIN_EMAIL') ?? '',
       subject: '新規注文がありました',
       html: createAdminEmail(order)
