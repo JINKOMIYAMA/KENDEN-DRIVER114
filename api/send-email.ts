@@ -11,6 +11,21 @@ export default async function handler(
   try {
     const { customerName, customerEmail, items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
+    // リクエストデータのログ
+    console.log('Request data:', {
+      customerName,
+      customerEmail,
+      totalAmount,
+      shippingAddress,
+      paymentMethod
+    });
+
+    // 環境変数の確認
+    console.log('Environment variables:', {
+      RESEND_API_KEY: process.env.RESEND_API_KEY ? 'Set' : 'Not set',
+      ADMIN_EMAIL: process.env.ADMIN_EMAIL
+    });
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -18,7 +33,7 @@ export default async function handler(
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Shop <comimasa@icloud.com>',
+        from: 'KENDEN DRIVER <onboarding@resend.dev>',
         to: [customerEmail, process.env.ADMIN_EMAIL],
         subject: 'ご注文ありがとうございます',
         html: `
@@ -47,13 +62,19 @@ export default async function handler(
       })
     });
 
+    // レスポンスの詳細をログ
     if (!response.ok) {
-      throw new Error('Failed to send email');
+      const errorText = await response.text();
+      console.error('Resend API error:', errorText);
+      throw new Error(`Failed to send email: ${errorText}`);
     }
 
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Failed to send email:', error);
-    return res.status(500).json({ error: 'Failed to send email' });
+    return res.status(500).json({ 
+      error: 'Failed to send email',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 } 

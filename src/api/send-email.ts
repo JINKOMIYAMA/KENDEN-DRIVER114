@@ -18,7 +18,7 @@ export default async function handler(
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Shop <comimasa@icloud.com>',
+        from: 'Shoei Buppan <onboarding@resend.dev>',
         to: [customerEmail, process.env.ADMIN_EMAIL],
         subject: 'ご注文ありがとうございます',
         html: `
