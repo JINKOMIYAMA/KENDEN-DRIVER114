@@ -64,12 +64,8 @@ export const createOrder = async (orderData: OrderData) => {
       throw itemsError;
     }
 
-    // 3. メール送信（環境に応じてURLを変更）
-    const apiUrl = import.meta.env.PROD 
-      ? '/api/send-email'  // 本番環境
-      : 'http://localhost:3001/api/send-email';  // 開発環境
-
-    const response = await fetch(apiUrl, {
+    // 3. メール送信
+    const response = await fetch('/api/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -84,8 +80,10 @@ export const createOrder = async (orderData: OrderData) => {
       })
     });
 
+    const responseData = await response.text();
     if (!response.ok) {
-      console.error('Email sending failed:', await response.text());
+      console.error('Email sending failed:', responseData);
+      // メール送信の失敗は注文処理自体は成功とする
     }
 
     return true;

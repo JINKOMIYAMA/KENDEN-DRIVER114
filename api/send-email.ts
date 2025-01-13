@@ -13,21 +13,22 @@ export default async function handler(
   try {
     const { customerName, customerEmail, items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
-    // リクエストデータのログ
-    console.log('Request data:', JSON.stringify({
-      customerName,
-      customerEmail,
-      totalAmount,
-      shippingAddress,
-      paymentMethod
-    }, null, 2));
+    // 必須フィールドの検証
+    if (!customerName || !customerEmail || !items || !totalAmount || !shippingAddress || !paymentMethod) {
+      console.error('Missing required fields:', { customerName, customerEmail, items, totalAmount, shippingAddress, paymentMethod });
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
-    // 環境変数の確認
-    console.log('Environment variables:', {
-      RESEND_API_KEY: process.env.RESEND_API_KEY ? 'Set' : 'Not set',
-      ADMIN_EMAIL: process.env.ADMIN_EMAIL,
-      NODE_ENV: process.env.NODE_ENV
-    });
+    // 環境変数の検証
+    if (!process.env.RESEND_API_KEY) {
+      console.error('Missing RESEND_API_KEY');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    if (!process.env.ADMIN_EMAIL) {
+      console.error('Missing ADMIN_EMAIL');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
 
     const emailData = {
       from: 'KENDEN DRIVER <onboarding@resend.dev>',
@@ -58,36 +59,33 @@ export default async function handler(
       `
     };
 
-    console.log('Preparing to send email');
+    console.log('Sending email to Resend API');
 
-    try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(emailData)
-      });
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(emailData)
+    });
 
-      const responseData = await response.text();
-      console.log('Resend API response:', {
-        status: response.status,
-        data: responseData
-      });
+    const responseText = await response.text();
+    console.log('Resend API response:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: responseText
+    });
 
-      if (!response.ok) {
-        throw new Error(`Resend API error: ${responseData}`);
-      }
-
-      console.log('Email sent successfully');
-      return res.status(200).json({ success: true });
-    } catch (fetchError) {
-      console.error('Fetch error:', fetchError);
-      throw fetchError;
+    if (!response.ok) {
+      throw new Error(`Resend API error: ${responseText}`);
     }
+
+    console.log('Email sent successfully');
+    return res.status(200).json({ success: true });
+
   } catch (error) {
-    console.error('Handler error:', error);
+    console.error('Error details:', error);
     return res.status(500).json({ 
       error: 'Failed to send email',
       details: error instanceof Error ? error.message : 'Unknown error'
