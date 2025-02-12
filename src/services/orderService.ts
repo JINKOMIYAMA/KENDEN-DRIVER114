@@ -64,31 +64,31 @@ export const createOrder = async (orderData: OrderData) => {
       throw itemsError;
     }
 
-    // 3. メール送信
-    const response = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        customerName: orderData.customerName,
-        customerEmail: orderData.customerEmail,
-        items: orderData.items,
-        totalAmount: orderData.totalAmount,
-        shippingAddress: orderData.shippingAddress,
-        paymentMethod: orderData.paymentMethod
-      })
-    });
-
-    const responseData = await response.text();
-    if (!response.ok) {
-      console.error('Email sending failed:', responseData);
-      // メール送信の失敗は注文処理自体は成功とする
+    // 3. メール送信を試みる（エラーが発生しても処理を続行）
+    try {
+      await fetch('http://localhost:8083/api/send-order-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerEmail: orderData.customerEmail,
+          customerName: orderData.customerName,
+          items: orderData.items,
+          totalAmount: orderData.totalAmount,
+          shippingAddress: orderData.shippingAddress,
+          paymentMethod: orderData.paymentMethod,
+          paymentDetails: orderData.paymentDetails
+        }),
+      });
+    } catch (emailError) {
+      console.warn('Email sending warning:', emailError);
+      // メール送信エラーは無視して続行
     }
 
     return true;
   } catch (error) {
     console.error('Order processing failed:', error);
-    return false;
+    throw error;
   }
 }; 

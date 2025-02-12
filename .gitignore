@@ -13,3 +13,6 @@ build/
 # その他
 .DS_Store
 *.log
+
+node_modules
+.next
